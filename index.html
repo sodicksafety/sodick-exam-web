@@ -339,35 +339,42 @@ document.addEventListener("DOMContentLoaded", () => {
     submitBtn.disabled = true;
     submitBtn.textContent = "กำลังส่งข้อมูล...";
 
-    const payload = {
-      userId: document.getElementById("userId").value,
-      fullname: document.getElementById("fullname").value.trim(),
-      phone: document.getElementById("phone").value.trim(),
-      idcard: document.getElementById("idcard").value.trim(),
-      company: document.getElementById("company").value.trim(),
-      position: document.getElementById("position").value,
-      score: 0,
-      answers: []
-    };
+   const payload = {
+  userId: document.getElementById("userId").value || "WEB_USER",
+  fullname: document.getElementById("fullname").value.trim(),
+  phone: document.getElementById("phone").value.trim(),
+  idcard: document.getElementById("idcard").value.trim(),
+  company: document.getElementById("company").value.trim(),
+  position: document.getElementById("position").value,
+  score: 0,
+  result: "",
+  answers: []
+};
 
-    let score = 0;
-    examQuestions.forEach((q, idx) => {
-      const radios = document.getElementsByName("q" + (idx + 1));
-      const selected = [...radios].find(r => r.checked);
-      const ans = parseInt(selected.value);
-      payload.answers.push(q.choices[ans]);
-      if (ans === q.answer) score++;
-    });
+let score = 0;
 
-    payload.score = score;
-    payload.result = score >= 24 ? "ผ่าน" : "ไม่ผ่าน";
+// ⭐ ทำ answers ให้ครบ 30 ช่องเสมอ
+for (let i = 0; i < examQuestions.length; i++) {
+  const radios = document.getElementsByName("q" + (i + 1));
+  const selected = [...radios].find(r => r.checked);
+  const ans = selected ? parseInt(selected.value) : null;
 
-    await sendToGoogleSheet(payload);
+  // ถ้าตอบ → เก็บคำตอบจริง, ถ้าไม่ตอบ → ใส่ช่องว่าง
+  payload.answers.push(ans !== null ? examQuestions[i].choices[ans] : "");
 
-    alert("คะแนน: " + score + "/30\nผลสอบ: " + payload.result);
+  if (ans === examQuestions[i].answer) score++;
+}
 
-    submitBtn.disabled = false;
-    submitBtn.textContent = "ส่งคำตอบ / Submit";
+payload.score = score;
+payload.result = score >= 24 ? "ผ่าน" : "ไม่ผ่าน";
+
+await sendToGoogleSheet(payload);
+
+alert("คะแนน: " + score + "/30\nผลสอบ: " + payload.result);
+
+submitBtn.disabled = false;
+submitBtn.textContent = "ส่งคำตอบ / Submit";
+
   });
 });
 </script>
