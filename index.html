@@ -233,236 +233,222 @@ https://www.sodick.co.th/Privacy%20Policy/AN-2022-0103-Announcement%20Personal%2
     { q: "29) ถ้าต้องทำงานอากาศร้อนควรทำอย่างไร?", choices: ["พักเป็นระยะ", "ทำต่อจนเสร็จ", "ไม่ต้องพัก"], answer: 0 },
     { q: "30) ถ้าพบสิ่งผิดปกติควรทำอย่างไร?", choices: ["แจ้ง Safety", "ปล่อยไว้", "ถ่ายรูปลงโซเชียล"], answer: 0 }
   ];
-    /* ============================
-     แสดงข้อสอบบนหน้าเว็บ
-     ============================ */
-  function renderQuestions() {
-    const container = document.getElementById("questionsContainer");
+   <script>
+/* ============================
+   แสดงข้อสอบบนหน้าเว็บ
+   ============================ */
+function renderQuestions() {
+  const container = document.getElementById("questionsContainer");
 
-    examQuestions.forEach((q, idx) => {
-      const qDiv = document.createElement("div");
-      qDiv.className = "question";
+  examQuestions.forEach((q, idx) => {
+    const qDiv = document.createElement("div");
+    qDiv.className = "question";
 
-      const title = document.createElement("div");
-      title.className = "question-title";
-      title.textContent = q.q;
-      qDiv.appendChild(title);
+    const title = document.createElement("div");
+    title.className = "question-title";
+    title.textContent = q.q;
+    qDiv.appendChild(title);
 
-      q.choices.forEach((choice, cIdx) => {
-        const label = document.createElement("label");
-        const input = document.createElement("input");
+    q.choices.forEach((choice, cIdx) => {
+      const label = document.createElement("label");
+      const input = document.createElement("input");
 
-        input.type = "radio";
-        input.name = "q" + (idx + 1);
-        input.value = cIdx;
+      input.type = "radio";
+      input.name = "q" + (idx + 1);
+      input.value = cIdx;
 
-        label.appendChild(input);
-        label.appendChild(document.createTextNode(" " + choice));
-        qDiv.appendChild(label);
-      });
-
-      container.appendChild(qDiv);
+      label.appendChild(input);
+      label.appendChild(document.createTextNode(" " + choice));
+      qDiv.appendChild(label);
     });
+
+    container.appendChild(qDiv);
+  });
+}
+
+/* ============================
+   ดึงค่าจาก URL เช่น userId
+   ============================ */
+function getQueryParam(name) {
+  const params = new URLSearchParams(window.location.search);
+  return params.get(name) || "";
+}
+
+/* ============================
+   ตรวจสอบความถูกต้องของฟอร์ม
+   ============================ */
+function validateForm() {
+  const errorBox = document.getElementById("errorBox");
+  errorBox.textContent = "";
+
+  const phone = document.getElementById("phone").value.trim();
+  const idcard = document.getElementById("idcard").value.trim();
+
+  if (!/^\d{10}$/.test(phone)) {
+    errorBox.textContent = "❌ เบอร์โทรไม่ถูกต้อง กรุณากรอก 10 หลัก เช่น 0812345678";
+    return false;
   }
 
-  /* ============================
-     ดึงค่าจาก URL เช่น userId
-     ============================ */
-  function getQueryParam(name) {
-    const params = new URLSearchParams(window.location.search);
-    return params.get(name) || "";
+  if (!/^[A-Za-z0-9]{6,13}$/.test(idcard)) {
+    errorBox.textContent =
+      "❌ หมายเลขไม่ถูกต้อง\n" +
+      "คนไทย: ต้องกรอกเลขบัตรประชาชน 13 หลัก\n" +
+      "ชาวต่างชาติ: Passport หรือ Work Permit (6–12 ตัวอักษร/ตัวเลข)";
+    return false;
   }
 
-  /* ============================
-     ตรวจสอบความถูกต้องของฟอร์ม
-     ============================ */
-  function validateForm() {
-    const errorBox = document.getElementById("errorBox");
+  for (let i = 1; i <= examQuestions.length; i++) {
+    const radios = document.getElementsByName("q" + i);
+    let checked = false;
+
+    for (const r of radios) {
+      if (r.checked) {
+        checked = true;
+        break;
+      }
+    }
+
+    if (!checked) {
+      errorBox.textContent =
+        "❌ กรุณาตอบคำถามให้ครบทุกข้อ (ขาดข้อที่ " + i + ")";
+      return false;
+    }
+  }
+
+  return true;
+}
+
+/* ============================
+   ส่งข้อมูลไป Google Sheet
+   ============================ */
+async function sendToGoogleSheet(payload) {
+  try {
+    await fetch(SCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+  } catch (err) {
+    console.error("ERROR sending to Google Sheet:", err);
+  }
+}
+
+/* ============================
+   แจ้งผลไปยัง Render (ถ้ามี)
+   ============================ */
+async function notifyRender(resultPayload) {
+  if (!RENDER_URL || RENDER_URL.includes("YOUR-RENDER-APP-URL")) return;
+
+  try {
+    await fetch(RENDER_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(resultPayload)
+    });
+  } catch (err) {
+    console.error("ERROR notify Render:", err);
+  }
+}
+
+/* ============================
+   เมื่อโหลดหน้าเว็บเสร็จ
+   ============================ */
+document.addEventListener("DOMContentLoaded", () => {
+
+  const userId = getQueryParam("userId");
+  document.getElementById("userId").value = userId;
+
+  renderQuestions();
+
+  const form = document.getElementById("examForm");
+  const submitBtn = document.getElementById("submitBtn");
+  const errorBox = document.getElementById("errorBox");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
     errorBox.textContent = "";
 
+    if (!document.getElementById("pdpaConsent").checked) {
+      errorBox.textContent = "❌ กรุณายอมรับนโยบาย PDPA ก่อนทำแบบทดสอบ";
+      return;
+    }
+
+    if (!validateForm()) return;
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = "กำลังส่งข้อมูล...";
+
+    const fullname = document.getElementById("fullname").value.trim();
     const phone = document.getElementById("phone").value.trim();
     const idcard = document.getElementById("idcard").value.trim();
+    const company = document.getElementById("company").value.trim();
+    const position = document.getElementById("position").value;
+    const uid = document.getElementById("userId").value;
 
-    // ตรวจเบอร์โทร 10 หลัก
-    if (!/^\d{10}$/.test(phone)) {
-      errorBox.textContent = "❌ เบอร์โทรไม่ถูกต้อง กรุณากรอก 10 หลัก เช่น 0812345678";
-      return false;
-    }
+    let score = 0;
+    const answersText = [];
 
-    // ตรวจเลขบัตร / Passport / Work Permit
-    if (!/^[A-Za-z0-9]{6,13}$/.test(idcard)) {
-      errorBox.textContent =
-        "❌ หมายเลขไม่ถูกต้อง\n" +
-        "คนไทย: ต้องกรอกเลขบัตรประชาชน 13 หลัก\n" +
-        "ชาวต่างชาติ: Passport หรือ Work Permit (6–12 ตัวอักษร/ตัวเลข)";
-      return false;
-    }
+    examQuestions.forEach((q, idx) => {
+      const qName = "q" + (idx + 1);
+      const radios = document.getElementsByName(qName);
 
-    // ตรวจว่าตอบครบทุกข้อ
-    for (let i = 1; i <= examQuestions.length; i++) {
-      const radios = document.getElementsByName("q" + i);
-      let checked = false;
-
+      let selectedIndex = -1;
       for (const r of radios) {
         if (r.checked) {
-          checked = true;
+          selectedIndex = parseInt(r.value, 10);
           break;
         }
       }
 
-      if (!checked) {
-        errorBox.textContent =
-          "❌ กรุณาตอบคำถามให้ครบทุกข้อ (ขาดข้อที่ " + i + ")";
-        return false;
-      }
-    }
+      const answerText = q.choices[selectedIndex];
+      const finalAnswer =
+        selectedIndex === q.answer
+          ? answerText + " (ถูก)"
+          : answerText;
 
-    return true;
-  }
+      answersText[idx] = finalAnswer;
 
-  /* ============================
-     ส่งข้อมูลไป Google Sheet
-     ============================ */
-  async function sendToGoogleSheet(payload) {
-    try {
-      await fetch(SCRIPT_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-    } catch (err) {
-      console.error("ERROR sending to Google Sheet:", err);
-    }
-  }
-
-  /* ============================
-     แจ้งผลไปยัง Render (ถ้ามี)
-     ============================ */
-  async function notifyRender(resultPayload) {
-    if (!RENDER_URL || RENDER_URL.includes("YOUR-RENDER-APP-URL")) return;
-
-    try {
-      await fetch(RENDER_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(resultPayload)
-      });
-    } catch (err) {
-      console.error("ERROR notify Render:", err);
-    }
-  }
-
-  /* ============================
-     เมื่อโหลดหน้าเว็บเสร็จ
-     ============================ */
-  document.addEventListener("DOMContentLoaded", () => {
-
-    // ดึง userId จาก URL
-    const userId = getQueryParam("userId");
-    document.getElementById("userId").value = userId;
-
-    // แสดงข้อสอบ
-    renderQuestions();
-
-    const form = document.getElementById("examForm");
-    const submitBtn = document.getElementById("submitBtn");
-    const errorBox = document.getElementById("errorBox");
-
-    /* ============================
-       เมื่อกดปุ่มส่งคำตอบ
-       ============================ */
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      errorBox.textContent = "";
-
-      // ตรวจ PDPA
-      if (!document.getElementById("pdpaConsent").checked) {
-        errorBox.textContent =
-          "❌ กรุณายอมรับนโยบาย PDPA ก่อนทำแบบทดสอบ";
-        return;
-      }
-
-      // ตรวจฟอร์ม
-      if (!validateForm()) return;
-
-      submitBtn.disabled = true;
-      submitBtn.textContent = "กำลังส่งข้อมูล...";
-
-      const fullname = document.getElementById("fullname").value.trim();
-      const phone = document.getElementById("phone").value.trim();
-      const idcard = document.getElementById("idcard").value.trim();
-      const company = document.getElementById("company").value.trim();
-      const position = document.getElementById("position").value;
-      const uid = document.getElementById("userId").value;
-
-      let score = 0;
-      const answersText = [];
-
-      // ตรวจคำตอบทีละข้อ
-      examQuestions.forEach((q, idx) => {
-        const qName = "q" + (idx + 1);
-        const radios = document.getElementsByName(qName);
-
-        let selectedIndex = -1;
-        for (const r of radios) {
-          if (r.checked) {
-            selectedIndex = parseInt(r.value, 10);
-            break;
-          }
-        }
-
-        const answerText = q.choices[selectedIndex];
-        const finalAnswer =
-          selectedIndex === q.answer
-            ? answerText + " (ถูก)"
-            : answerText;
-
-        answersText[idx] = finalAnswer;
-
-        if (selectedIndex === q.answer) score++;
-      });
-
-      const passStatus = score >= 24 ? "ผ่าน" : "ไม่ผ่าน";
-
-      const payload = {
-        userId: uid,
-        fullname,
-        position,
-        phone,
-        idcard,
-        company,
-        score,
-        result: passStatus,
-        answers: answersText
-      };
-
-      try {
-        await sendToGoogleSheet(payload);
-        await notifyRender({
-          userId: uid,
-          score,
-          result: passStatus
-        });
-
-        alert(
-          "สรุปผลการทำแบบทดสอบ\n" +
-          "คะแนนของคุณ: " + score + "/" + examQuestions.length + "\n" +
-          "ผลสอบ: " + (passStatus === "ผ่าน" ? "ผ่าน ✅" : "ไม่ผ่าน ❌") + "\n\n" +
-          "กรุณากลับไปที่หน้าจอ LINE เพื่อดูผลและดาวน์โหลดบัตร"
-        );
-
-      } catch (err) {
-        console.error(err);
-        errorBox.textContent =
-          "❌ เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง";
-
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = "ส่งคำตอบ / Submit";
-      }
+      if (selectedIndex === q.answer) score++;
     });
-  });
-</script>
 
-</body>
-</html>
+    const passStatus = score >= 24 ? "ผ่าน" : "ไม่ผ่าน";
+
+    const payload = {
+      userId: uid,
+      fullname,
+      position,
+      phone,
+      idcard,
+      company,
+      score,
+      result: passStatus,
+      answers: answersText
+    };
+
+    try {
+      await sendToGoogleSheet(payload);
+      await notifyRender({
+        userId: uid,
+        score,
+        result: passStatus
+      });
+
+      alert(
+        "สรุปผลการทำแบบทดสอบ\n" +
+        "คะแนนของคุณ: " + score + "/" + examQuestions.length + "\n" +
+        "ผลสอบ: " + (passStatus === "ผ่าน" ? "ผ่าน ✅" : "ไม่ผ่าน ❌") + "\n\n" +
+        "กรุณากลับไปที่หน้าจอ LINE เพื่อดูผลและดาวน์โหลดบัตร"
+      );
+
+    } catch (err) {
+      console.error(err);
+      errorBox.textContent =
+        "❌ เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง";
+
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "ส่งคำตอบ / Submit";
+    }
+  });
+});
+</script>
