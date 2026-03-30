@@ -374,7 +374,12 @@ async function notifyRender(resultPayload) {
 document.addEventListener("DOMContentLoaded", () => {
 
   const userId = getQueryParam("userId");
-  document.getElementById("userId").value = userId;
+
+  // ป้องกัน error ถ้าไม่มี userId element
+  const userIdField = document.getElementById("userId");
+  if (userIdField) {
+    userIdField.value = userId || "";
+  }
 
   renderQuestions();
 
@@ -386,11 +391,14 @@ document.addEventListener("DOMContentLoaded", () => {
     e.preventDefault();
     errorBox.textContent = "";
 
-    if (!document.getElementById("pdpaConsent").checked) {
+    // เช็ค PDPA
+    const pdpa = document.getElementById("pdpaConsent");
+    if (pdpa && !pdpa.checked) {
       errorBox.textContent = "❌ กรุณายอมรับนโยบาย PDPA ก่อนทำแบบทดสอบ";
       return;
     }
 
+    // เช็คข้อมูลผู้เข้าสอบ
     if (!validateForm()) return;
 
     submitBtn.disabled = true;
@@ -401,7 +409,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const idcard = document.getElementById("idcard").value.trim();
     const company = document.getElementById("company").value.trim();
     const position = document.getElementById("position").value;
-    const uid = document.getElementById("userId").value;
+    const uid = userIdField ? userIdField.value : "";
 
     let score = 0;
     const answersText = [];
