@@ -184,17 +184,25 @@ https://www.sodick.co.th/Privacy%20Policy/AN-2022-0103-Announcement%20Personal%2
     <input type="text" name="company" id="company" required>
 
     <label>ตำแหน่งงาน / Job position</label>
-    <select name="position" id="position" required>
-      <option value="">-- เลือกตำแหน่งงาน / Select position --</option>
-      <option value="Owner">เจ้าของบริษัท / Owner</option>
-      <option value="Supervisor">ผู้ควบคุมงาน / Supervisor</option>
-      <option value="Engineer">วิศวกร / Engineer</option>
-      <option value="Foreman">โฟร์แมน / Foreman</option>
-      <option value="Technician">ช่าง / Technician</option>
-      <option value="GeneralWorker">พนักงานทั่วไป / General Worker</option>
-    </select>
-  </div>
+<select name="position" id="position" required>
+  <option value="">-- เลือกตำแหน่งงาน / Select position --</option>
+  <option value="Owner">เจ้าของบริษัท / Owner</option>
+  <option value="Supervisor">ผู้ควบคุมงาน / Supervisor</option>
+  <option value="Engineer">วิศวกร / Engineer</option>
+  <option value="Foreman">โฟร์แมน / Foreman</option>
+  <option value="Technician">ช่าง / Technician</option>
+  <option value="GeneralWorker">พนักงานทั่วไป / General Worker</option>
+</select>
+</div>
+
+<!-- ที่วางข้อสอบ -->
+<div id="questionsContainer"></div>
+
+<!-- ปุ่มส่งคำตอบ -->
+<button id="submitBtn">ส่งคำตอบ / Submit</button>
+
 </form>
+
 <script>
  /* URL ปลายทาง */
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzM-aH9KjLB0xo5JiJBia09hCdWhCcusS2P4p3J_0swaH4QyZSpTCvpYlEqCTUMBjQi/exec";
