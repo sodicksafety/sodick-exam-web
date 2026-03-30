@@ -175,23 +175,23 @@
 
 </div>
 
-  <!-- USER INFO SECTION -->
-  <div class="section">
-    <h3>ข้อมูลผู้เข้าสอบ</h3>
+ <!-- USER INFO SECTION -->
+<div class="section">
+  <h3>ข้อมูลผู้เข้าสอบ</h3>
 
-    <label>ชื่อ–นามสกุล / Full name</label>
-    <input type="text" name="fullname" id="fullname" required>
+  <label>ชื่อ–นามสกุล / Full name</label>
+  <input type="text" name="fullname" id="fullname" required>
 
-    <label>เบอร์โทรศัพท์ / Phone number</label>
-    <input type="text" name="phone" id="phone" required>
+  <label>เบอร์โทรศัพท์ / Phone number</label>
+  <input type="text" name="phone" id="phone" required>
 
-    <label>เลขบัตรประชาชน / พาสปอร์ต / Work Permit</label>
-    <input type="text" name="idcard" id="idcard" required>
+  <label>เลขบัตรประชาชน / พาสปอร์ต / Work Permit</label>
+  <input type="text" name="idcard" id="idcard" required>
 
-    <label>บริษัท / Company</label>
-    <input type="text" name="company" id="company" required>
+  <label>บริษัท / Company</label>
+  <input type="text" name="company" id="company" required>
 
-    <label>ตำแหน่งงาน / Job position</label>
+  <label>ตำแหน่งงาน / Job position</label>
 <select name="position" id="position" required>
   <option value="">-- เลือกตำแหน่งงาน / Select position --</option>
   <option value="Owner">เจ้าของบริษัท / Owner</option>
@@ -203,6 +203,9 @@
 </select>
 </div>
 
+<!-- เปิดฟอร์มตรงนี้ให้ถูกต้อง -->
+<form id="examForm">
+
 <!-- ที่วางข้อสอบ -->
 <div id="questionsContainer"></div>
 
@@ -211,10 +214,11 @@
 
 </form>
 
-  <script>
- /* URL ปลายทาง */
+<!-- ปิดฟอร์มแล้วค่อยเปิด SCRIPT ใหม่ -->
+<script>
+/* URL ปลายทาง */
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzM-aH9KjLB0xo5JiJBia09hCdWhCcusS2P4p3J_0swaH4QyZSpTCvpYlEqCTUMBjQi/exec";
-const RENDER_URL = "https://YOUR-RENDER-APP-URL/exam-result";
+const RENDER_URL = "https://YOUR-RENDER-APP-URL/exam-result";;
 
 /* ข้อสอบ 30 ข้อ */
 const examQuestions = [
@@ -249,7 +253,17 @@ const examQuestions = [
   { q: "29) ถ้าต้องทำงานอากาศร้อนควรทำอย่างไร?", choices: ["พักเป็นระยะ", "ทำต่อจนเสร็จ", "ไม่ต้องพัก"], answer: 0 },
   { q: "30) ถ้าพบสิ่งผิดปกติควรทำอย่างไร?", choices: ["แจ้ง Safety", "ปล่อยไว้", "ถ่ายรูปลงโซเชียล"], answer: 0 }
 ];
+<form id="examForm">
 
+  <!-- ที่วางข้อสอบ -->
+  <div id="questionsContainer"></div>
+
+  <!-- ปุ่มส่งคำตอบ -->
+  <button id="submitBtn">ส่งคำตอบ / Submit</button>
+
+</form>
+
+<script>
 /* ============================
    แสดงข้อสอบบนหน้าเว็บ
    ============================ */
