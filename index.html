@@ -201,23 +201,23 @@
   <option value="Technician">ช่าง / Technician</option>
   <option value="GeneralWorker">พนักงานทั่วไป / General Worker</option>
 </select>
-</div>
+  </div>
 
-<!-- เปิดฟอร์มตรงนี้ให้ถูกต้อง -->
-<form id="examForm">
+  <!-- QUESTIONS -->
+  <div id="questionsContainer"></div>
 
-<!-- ที่วางข้อสอบ -->
-<div id="questionsContainer"></div>
+  <!-- ERROR -->
+  <div id="errorBox" class="error"></div>
 
-<!-- ปุ่มส่งคำตอบ -->
-<button id="submitBtn">ส่งคำตอบ / Submit</button>
+  <!-- SUBMIT -->
+  <button id="submitBtn">ส่งคำตอบ / Submit</button>
 
 </form>
-<!-- ปิดฟอร์มแล้วค่อยเปิด SCRIPT ใหม่ -->
+
 <script>
-/* URL ปลายทาง */
+/* URL */
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzM-aH9KjLB0xo5JiJBia09hCdWhCcusS2P4p3J_0swaH4QyZSpTCvpYlEqCTUMBjQi/exec";
-const RENDER_URL = "https://YOUR-RENDER-APP-URL/exam-result";;
+const RENDER_URL = "https://YOUR-RENDER-APP-URL/exam-result";
 
 /* ข้อสอบ 30 ข้อ */
 const examQuestions = [
@@ -252,49 +252,34 @@ const examQuestions = [
   { q: "29) ถ้าต้องทำงานอากาศร้อนควรทำอย่างไร?", choices: ["พักเป็นระยะ", "ทำต่อจนเสร็จ", "ไม่ต้องพัก"], answer: 0 },
   { q: "30) ถ้าพบสิ่งผิดปกติควรทำอย่างไร?", choices: ["แจ้ง Safety", "ปล่อยไว้", "ถ่ายรูปลงโซเชียล"], answer: 0 }
 ];
-/* ============================
-   แสดงข้อสอบบนหน้าเว็บ
-   ============================ */
+/* RENDER QUESTIONS */
 function renderQuestions() {
   const container = document.getElementById("questionsContainer");
-
   examQuestions.forEach((q, idx) => {
-    const qDiv = document.createElement("div");
-    qDiv.className = "question";
+    const div = document.createElement("div");
+    div.className = "question";
 
     const title = document.createElement("div");
     title.className = "question-title";
     title.textContent = q.q;
-    qDiv.appendChild(title);
+    div.appendChild(title);
 
-    q.choices.forEach((choice, cIdx) => {
+    q.choices.forEach((c, cIdx) => {
       const label = document.createElement("label");
       const input = document.createElement("input");
-
       input.type = "radio";
       input.name = "q" + (idx + 1);
       input.value = cIdx;
-
       label.appendChild(input);
-      label.appendChild(document.createTextNode(" " + choice));
-      qDiv.appendChild(label);
+      label.appendChild(document.createTextNode(" " + c));
+      div.appendChild(label);
     });
 
-    container.appendChild(qDiv);
+    container.appendChild(div);
   });
 }
 
-/* ============================
-   ดึงค่าจาก URL เช่น userId
-   ============================ */
-function getQueryParam(name) {
-  const params = new URLSearchParams(window.location.search);
-  return params.get(name) || "";
-}
-
-/* ============================
-   ตรวจสอบความถูกต้องของฟอร์ม
-   ============================ */
+/* VALIDATE */
 function validateForm() {
   const errorBox = document.getElementById("errorBox");
   errorBox.textContent = "";
@@ -303,32 +288,19 @@ function validateForm() {
   const idcard = document.getElementById("idcard").value.trim();
 
   if (!/^\d{10}$/.test(phone)) {
-    errorBox.textContent = "❌ เบอร์โทรไม่ถูกต้อง กรุณากรอก 10 หลัก เช่น 0812345678";
+    errorBox.textContent = "❌ เบอร์โทรต้องเป็นตัวเลข 10 หลัก";
     return false;
   }
 
   if (!/^[A-Za-z0-9]{6,13}$/.test(idcard)) {
-    errorBox.textContent =
-      "❌ หมายเลขไม่ถูกต้อง\n" +
-      "คนไทย: ต้องกรอกเลขบัตรประชาชน 13 หลัก\n" +
-      "ชาวต่างชาติ: Passport หรือ Work Permit (6–12 ตัวอักษร/ตัวเลข)";
+    errorBox.textContent = "❌ หมายเลขบัตร/พาสปอร์ตไม่ถูกต้อง";
     return false;
   }
 
   for (let i = 1; i <= examQuestions.length; i++) {
     const radios = document.getElementsByName("q" + i);
-    let checked = false;
-
-    for (const r of radios) {
-      if (r.checked) {
-        checked = true;
-        break;
-      }
-    }
-
-    if (!checked) {
-      errorBox.textContent =
-        "❌ กรุณาตอบคำถามให้ครบทุกข้อ (ขาดข้อที่ " + i + ")";
+    if (![...radios].some(r => r.checked)) {
+      errorBox.textContent = "❌ กรุณาตอบข้อที่ " + i;
       return false;
     }
   }
@@ -336,51 +308,17 @@ function validateForm() {
   return true;
 }
 
-/* ============================
-   ส่งข้อมูลไป Google Sheet
-   ============================ */
+/* SEND */
 async function sendToGoogleSheet(payload) {
-  try {
-    await fetch(SCRIPT_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
-  } catch (err) {
-    console.error("ERROR sending to Google Sheet:", err);
-  }
+  await fetch(SCRIPT_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
 }
 
-/* ============================
-   แจ้งผลไปยัง Render (ถ้ามี)
-   ============================ */
-async function notifyRender(resultPayload) {
-  if (!RENDER_URL || RENDER_URL.includes("YOUR-RENDER-APP-URL")) return;
-
-  try {
-    await fetch(RENDER_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(resultPayload)
-    });
-  } catch (err) {
-    console.error("ERROR notify Render:", err);
-  }
-}
-
-/* ============================
-   เมื่อโหลดหน้าเว็บเสร็จ
-   ============================ */
+/* MAIN */
 document.addEventListener("DOMContentLoaded", () => {
-
-  const userId = getQueryParam("userId");
-
-  // ป้องกัน error ถ้าไม่มี userId element
-  const userIdField = document.getElementById("userId");
-  if (userIdField) {
-    userIdField.value = userId || "";
-  }
-
   renderQuestions();
 
   const form = document.getElementById("examForm");
@@ -391,90 +329,48 @@ document.addEventListener("DOMContentLoaded", () => {
     e.preventDefault();
     errorBox.textContent = "";
 
-    // เช็ค PDPA
-    const pdpa = document.getElementById("pdpaConsent");
-    if (pdpa && !pdpa.checked) {
-      errorBox.textContent = "❌ กรุณายอมรับนโยบาย PDPA ก่อนทำแบบทดสอบ";
+    if (!document.getElementById("pdpaConsent").checked) {
+      errorBox.textContent = "❌ กรุณายอมรับ PDPA ก่อนทำแบบทดสอบ";
       return;
     }
 
-    // เช็คข้อมูลผู้เข้าสอบ
     if (!validateForm()) return;
 
     submitBtn.disabled = true;
     submitBtn.textContent = "กำลังส่งข้อมูล...";
 
-    const fullname = document.getElementById("fullname").value.trim();
-    const phone = document.getElementById("phone").value.trim();
-    const idcard = document.getElementById("idcard").value.trim();
-    const company = document.getElementById("company").value.trim();
-    const position = document.getElementById("position").value;
-    const uid = userIdField ? userIdField.value : "";
-
-    let score = 0;
-    const answersText = [];
-
-    examQuestions.forEach((q, idx) => {
-      const qName = "q" + (idx + 1);
-      const radios = document.getElementsByName(qName);
-
-      let selectedIndex = -1;
-      for (const r of radios) {
-        if (r.checked) {
-          selectedIndex = parseInt(r.value, 10);
-          break;
-        }
-      }
-
-      const answerText = q.choices[selectedIndex];
-      const finalAnswer =
-        selectedIndex === q.answer
-          ? answerText + " (ถูก)"
-          : answerText;
-
-      answersText[idx] = finalAnswer;
-
-      if (selectedIndex === q.answer) score++;
-    });
-
-    const passStatus = score >= 24 ? "ผ่าน" : "ไม่ผ่าน";
-
     const payload = {
-      userId: uid,
-      fullname,
-      position,
-      phone,
-      idcard,
-      company,
-      score,
-      result: passStatus,
-      answers: answersText
+      userId: document.getElementById("userId").value,
+      fullname: document.getElementById("fullname").value.trim(),
+      phone: document.getElementById("phone").value.trim(),
+      idcard: document.getElementById("idcard").value.trim(),
+      company: document.getElementById("company").value.trim(),
+      position: document.getElementById("position").value,
+      score: 0,
+      answers: []
     };
 
-    try {
-      await sendToGoogleSheet(payload);
-      await notifyRender({
-        userId: uid,
-        score,
-        result: passStatus
-      });
+    let score = 0;
+    examQuestions.forEach((q, idx) => {
+      const radios = document.getElementsByName("q" + (idx + 1));
+      const selected = [...radios].find(r => r.checked);
+      const ans = parseInt(selected.value);
+      payload.answers.push(q.choices[ans]);
+      if (ans === q.answer) score++;
+    });
 
-      alert(
-        "สรุปผลการทำแบบทดสอบ\n" +
-        "คะแนนของคุณ: " + score + "/" + examQuestions.length + "\n" +
-        "ผลสอบ: " + (passStatus === "ผ่าน" ? "ผ่าน ✅" : "ไม่ผ่าน ❌") + "\n\n" +
-        "กรุณากลับไปที่หน้าจอ LINE เพื่อดูผลและดาวน์โหลดบัตร"
-      );
+    payload.score = score;
+    payload.result = score >= 24 ? "ผ่าน" : "ไม่ผ่าน";
 
-    } catch (err) {
-      console.error(err);
-      errorBox.textContent =
-        "❌ เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง";
+    await sendToGoogleSheet(payload);
 
-    } finally {
-      submitBtn.disabled = false;
-      submitBtn.textContent = "ส่งคำตอบ / Submit";
-    }
+    alert("คะแนน: " + score + "/30\nผลสอบ: " + payload.result);
+
+    submitBtn.disabled = false;
+    submitBtn.textContent = "ส่งคำตอบ / Submit";
   });
 });
 </script>
+
+</body>
+</html>
