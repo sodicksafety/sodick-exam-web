@@ -146,10 +146,10 @@
 <form id="examForm">
   <input type="hidden" id="userId" name="userId">
 
-  <!-- PDPA SECTION -->
-  <div class="section pdpa-box">
-    <h3>นโยบายคุ้มครองข้อมูลส่วนบุคคล (PDPA)</h3>
-    <p>กรุณาอ่านนโยบาย PDPA ให้ครบถ้วนก่อนยอมรับ</p>
+ <!-- PDPA SECTION -->
+<div class="section pdpa-box">
+  <h3>นโยบายคุ้มครองข้อมูลส่วนบุคคล (PDPA)</h3>
+  <p>กรุณาอ่านนโยบาย PDPA ให้ครบถ้วนก่อนยอมรับ</p>
 
 <textarea readonly>
 บริษัทมีการเก็บข้อมูลส่วนบุคคลเพื่อใช้ในการ:
@@ -175,7 +175,7 @@
 
 </div>
 
- <!-- USER INFO SECTION -->
+<!-- USER INFO SECTION -->
 <div class="section">
   <h3>ข้อมูลผู้เข้าสอบ</h3>
 
@@ -201,9 +201,9 @@
   <option value="Technician">ช่าง / Technician</option>
   <option value="GeneralWorker">พนักงานทั่วไป / General Worker</option>
 </select>
-  </div>
+</div>
 
-  <!-- QUESTIONS -->
+<!-- QUESTIONS -->
 <div id="questionsContainer"></div>
 
 <!-- ERROR -->
@@ -252,6 +252,7 @@ const examQuestions = [
   { q: "29) ถ้าต้องทำงานอากาศร้อนควรทำอย่างไร?", choices: ["พักเป็นระยะ", "ทำต่อจนเสร็จ", "ไม่ต้องพัก"], answer: 0 },
   { q: "30) ถ้าพบสิ่งผิดปกติควรทำอย่างไร?", choices: ["แจ้ง Safety", "ปล่อยไว้", "ถ่ายรูปลงโซเชียล"], answer: 0 }
 ];
+
 /* RENDER QUESTIONS */
 function renderQuestions() {
   const container = document.getElementById("questionsContainer");
@@ -339,41 +340,40 @@ document.addEventListener("DOMContentLoaded", () => {
     submitBtn.disabled = true;
     submitBtn.textContent = "กำลังส่งข้อมูล...";
 
-   const payload = {
-  userId: document.getElementById("userId").value || "WEB_USER",
-  fullname: document.getElementById("fullname").value.trim(),
-  phone: document.getElementById("phone").value.trim(),
-  idcard: document.getElementById("idcard").value.trim(),
-  company: document.getElementById("company").value.trim(),
-  position: document.getElementById("position").value,
-  score: 0,
-  result: "",
-  answers: []
-};
+    const payload = {
+      userId: document.getElementById("userId").value || "WEB_USER",
+      fullname: document.getElementById("fullname").value.trim(),
+      phone: document.getElementById("phone").value.trim(),
+      idcard: document.getElementById("idcard").value.trim(),
+      company: document.getElementById("company").value.trim(),
+      position: document.getElementById("position").value,
+      score: 0,
+      result: "",
+      answers: []
+    };
 
-let score = 0;
+    let score = 0;
 
-// ⭐ ทำ answers ให้ครบ 30 ช่องเสมอ
-for (let i = 0; i < examQuestions.length; i++) {
-  const radios = document.getElementsByName("q" + (i + 1));
-  const selected = [...radios].find(r => r.checked);
-  const ans = selected ? parseInt(selected.value) : null;
+    // ⭐ ทำ answers ให้ครบ 30 ช่องเสมอ
+    for (let i = 0; i < examQuestions.length; i++) {
+      const radios = document.getElementsByName("q" + (i + 1));
+      const selected = [...radios].find(r => r.checked);
+      const ans = selected ? parseInt(selected.value) : null;
 
-  // ถ้าตอบ → เก็บคำตอบจริง, ถ้าไม่ตอบ → ใส่ช่องว่าง
-  payload.answers.push(ans !== null ? examQuestions[i].choices[ans] : "");
+      payload.answers.push(ans !== null ? examQuestions[i].choices[ans] : "");
 
-  if (ans === examQuestions[i].answer) score++;
-}
+      if (ans === examQuestions[i].answer) score++;
+    }
 
-payload.score = score;
-payload.result = score >= 24 ? "ผ่าน" : "ไม่ผ่าน";
+    payload.score = score;
+    payload.result = score >= 24 ? "ผ่าน" : "ไม่ผ่าน";
 
-await sendToGoogleSheet(payload);
+    await sendToGoogleSheet(payload);
 
-alert("คะแนน: " + score + "/30\nผลสอบ: " + payload.result);
+    alert("คะแนน: " + score + "/30\nผลสอบ: " + payload.result);
 
-submitBtn.disabled = false;
-submitBtn.textContent = "ส่งคำตอบ / Submit";
+    submitBtn.disabled = false;
+    submitBtn.textContent = "ส่งคำตอบ / Submit";
 
   });
 });
@@ -381,3 +381,4 @@ submitBtn.textContent = "ส่งคำตอบ / Submit";
 
 </body>
 </html>
+
