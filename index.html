@@ -134,6 +134,12 @@
 </head>
 
 <body>
+
+<!-- ====== HEADER IMAGE ====== -->
+<div class="header-image">
+  <img src="SODICK WAY.png" alt="Sodick Way">
+</div>
+
 <h2>แบบทดสอบความปลอดภัย Sodick</h2>
 
 <form id="examForm">
@@ -188,25 +194,13 @@ https://www.sodick.co.th/Privacy%20Policy/AN-2022-0103-Announcement%20Personal%2
       <option value="GeneralWorker">พนักงานทั่วไป / General Worker</option>
     </select>
   </div>
-
-  <!-- QUESTIONS SECTION -->
-  <div class="section">
-    <h3>ข้อสอบความปลอดภัย 30 ข้อ</h3>
-    <div id="questionsContainer"></div>
-  </div>
-
-  <!-- SUBMIT SECTION -->
-  <div class="section">
-    <button type="submit" id="submitBtn">ส่งคำตอบ / Submit</button>
-    <div id="errorBox" class="error"></div>
-  </div>
 </form>
-
 <script>
-  /* URL ปลายทาง (แก้เฉพาะ RENDER_URL ให้ตรงกับระบบของไก่) */
+  /* URL ปลายทาง */
   const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzM-aH9KjLB0xo5JiJBia09hCdWhCcusS2P4p3J_0swaH4QyZSpTCvpYlEqCTUMBjQi/exec";
-  const RENDER_URL = "https://YOUR-RENDER-APP-URL/exam-result"; // ← แก้เป็น endpoint บน Render
-  // ข้อสอบ 30 ข้อ (ยกมาจาก JS เดิม)
+  const RENDER_URL = "https://YOUR-RENDER-APP-URL/exam-result";
+
+  /* ข้อสอบ 30 ข้อ */
   const examQuestions = [
     { q: "1) PPE คืออะไร?", choices: ["อุปกรณ์ป้องกันอันตรายส่วนบุคคล", "รองเท้าธรรมดา", "เสื้อผ้าทั่วไป"], answer: 0 },
     { q: "2) หมวกนิรภัยต้องสวมเมื่อไหร่?", choices: ["เมื่ออยู่ในพื้นที่ทำงาน", "เฉพาะตอนมีผู้จัดการมา", "ไม่จำเป็น"], answer: 0 },
@@ -239,8 +233,7 @@ https://www.sodick.co.th/Privacy%20Policy/AN-2022-0103-Announcement%20Personal%2
     { q: "29) ถ้าต้องทำงานอากาศร้อนควรทำอย่างไร?", choices: ["พักเป็นระยะ", "ทำต่อจนเสร็จ", "ไม่ต้องพัก"], answer: 0 },
     { q: "30) ถ้าพบสิ่งผิดปกติควรทำอย่างไร?", choices: ["แจ้ง Safety", "ปล่อยไว้", "ถ่ายรูปลงโซเชียล"], answer: 0 }
   ];
-
-   /* ============================
+    /* ============================
      แสดงข้อสอบบนหน้าเว็บ
      ============================ */
   function renderQuestions() {
